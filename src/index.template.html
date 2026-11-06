@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071018">
+  <meta name="description" content="Cờ caro 50×50 — Người vs Máy hoặc 2 bot Siêu khó tự đấu, tối đa 30 giây mỗi nước.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1721'/%3E%3Ccircle cx='25' cy='32' r='12' fill='%23151b21' stroke='%23e8b86a' stroke-width='2'/%3E%3Ccircle cx='40' cy='32' r='12' fill='%23f3eadb' stroke='%23e8b86a' stroke-width='2'/%3E%3C/svg%3E">
+  <title>Cờ Caro 50×50 — Đấu với máy &amp; Bot vs Bot</title>
+  <style>
+<!--INLINE_CSS-->
+  </style>
+</head>
+<body>
+  <div class="ambient ambient-a"></div>
+  <div class="ambient ambient-b"></div>
+
+  <div class="app">
+    <header class="topbar">
+      <div class="brand" aria-label="Cờ Caro Thách Đấu">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>
+          <span class="brand-kicker">GOMOKU · 50 × 50</span>
+          <h1 class="brand-title">Cờ Caro <em>Thách Đấu</em></h1>
+        </span>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" id="soundBtn" type="button" title="Bật/tắt âm thanh" aria-label="Bật tắt âm thanh">
+          <svg id="soundOnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M11 5 6.8 8.5H3.5v7h3.3L11 19V5Z"></path>
+            <path d="M15.2 9.2a4 4 0 0 1 0 5.6"></path>
+            <path d="M17.8 6.6a7.6 7.6 0 0 1 0 10.8"></path>
+          </svg>
+          <svg id="soundOffIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+            <path d="M11 5 6.8 8.5H3.5v7h3.3L11 19V5Z"></path>
+            <path d="m15 9 5 5"></path>
+            <path d="m20 9-5 5"></path>
+          </svg>
+        </button>
+        <button class="ghost-btn" id="rulesBtn" type="button">Luật chơi</button>
+      </div>
+    </header>
+
+    <main class="game-layout">
+      <section class="board-column" aria-label="Bàn cờ">
+        <div class="match-strip">
+          <div class="player-card" id="humanCard">
+            <span class="stone-icon black" aria-hidden="true"></span>
+            <span>
+              <span class="label" id="humanPlayerLabel">Bạn</span>
+              <span class="name" id="humanPlayerName">Quân đen</span>
+            </span>
+            <span class="turn-dot" aria-hidden="true"></span>
+          </div>
+          <span class="vs">VS</span>
+          <div class="player-card ai" id="aiCard">
+            <span class="stone-icon white" aria-hidden="true"></span>
+            <span>
+              <span class="label" id="aiPlayerLabel">Máy</span>
+              <span class="name" id="aiLevelLabel">Siêu khó</span>
+            </span>
+            <span class="turn-dot" aria-hidden="true"></span>
+          </div>
+        </div>
+
+        <div class="board-shell">
+          <div class="board-frame" id="boardFrame">
+            <canvas id="board" width="800" height="800" aria-label="Bàn cờ caro 50 hàng 50 cột"></canvas>
+            <div class="board-hover-info" id="hoverInfo"></div>
+            <div class="thinking-pill" id="thinkingPill" aria-live="polite">
+              <span class="spinner" aria-hidden="true"></span>
+              <span id="thinkingText">Máy đang suy nghĩ</span>
+              <span class="dots" aria-hidden="true">...</span>
+            </div>
+
+            <div class="result-overlay" id="resultOverlay" hidden>
+              <div class="result-card" id="resultCard">
+                <div class="result-kicker" id="resultKicker">Ván đấu kết thúc</div>
+                <h2 id="resultTitle">Bạn đã thắng!</h2>
+                <p id="resultText"></p>
+                <div class="result-actions">
+                  <button class="primary" id="playAgainBtn" type="button">Ván mới</button>
+                  <button class="ghost" id="reviewBtn" type="button">Xem lại bàn cờ</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="board-tools">
+            <div class="zoom-group" aria-label="Thu phóng bàn cờ">
+              <button id="zoomOutBtn" type="button" title="Thu nhỏ" aria-label="Thu nhỏ">−</button>
+              <button id="zoomFitBtn" type="button" title="Xem toàn bộ bàn cờ">Vừa khung</button>
+              <button id="zoomInBtn" type="button" title="Phóng to" aria-label="Phóng to">+</button>
+            </div>
+            <div class="coord-readout" id="coordReadout">Ô — · trống</div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side-column" aria-label="Thông tin ván đấu">
+        <section class="turn-panel glass">
+          <div class="turn-top">
+            <span class="eyebrow">LƯỢT HIỆN TẠI</span>
+            <span class="live-dot" aria-hidden="true"></span>
+          </div>
+          <div class="turn-main">
+            <span class="big-stone black" id="turnStone" aria-hidden="true"></span>
+            <div>
+              <h2 id="turnTitle">Lượt của bạn</h2>
+              <p id="turnSubtitle">Đặt quân vào một giao điểm bất kỳ</p>
+            </div>
+          </div>
+          <div class="turn-meta">
+            <span>Nước thứ <strong id="moveCounter">1</strong></span>
+            <span class="sep">·</span>
+            <span id="thinkMeta">Bạn đi trước</span>
+          </div>
+          <div class="think-limit" id="thinkLimitBox" hidden>
+            <div class="think-limit-head">
+              <span id="thinkLimitText">Giới hạn mỗi nước: 30 giây</span>
+              <span id="thinkLimitRemain">—</span>
+            </div>
+            <div class="think-track" aria-hidden="true"><span id="thinkProgress"></span></div>
+          </div>
+        </section>
+
+        <section class="actions-panel" aria-label="Điều khiển">
+          <button class="primary big" id="newGameBtn" type="button"><span aria-hidden="true">↺</span> Ván mới</button>
+          <div class="action-row">
+            <button class="soft pause-btn" id="pauseBtn" type="button" hidden>
+              <span id="pauseIcon" aria-hidden="true">⏸</span>
+              <span id="pauseLabel">Tạm dừng</span>
+            </button>
+            <button class="soft" id="undoBtn" type="button"><span aria-hidden="true">↶</span> Đi lại</button>
+            <button class="soft" id="hintBtn" type="button"><span aria-hidden="true">✦</span> Gợi ý</button>
+          </div>
+        </section>
+
+        <section class="settings-card glass">
+          <div class="card-heading">
+            <span>Thiết lập</span>
+            <span class="mini-badge" id="difficultyBadge">SIÊU KHÓ</span>
+          </div>
+          <label class="field-label">Chế độ chơi</label>
+          <div class="segmented" id="modeGroup" role="group" aria-label="Chế độ chơi">
+            <button type="button" data-mode="pve" class="active">Người vs Máy</button>
+            <button type="button" data-mode="bot">Máy vs Máy</button>
+          </div>
+          <div id="difficultyField">
+            <label class="field-label">Độ khó của máy</label>
+            <div class="segmented" id="difficultyGroup" role="group" aria-label="Độ khó">
+              <button type="button" data-level="normal">Vừa</button>
+              <button type="button" data-level="hard">Khó</button>
+              <button type="button" data-level="super" class="active">Siêu khó</button>
+            </div>
+          </div>
+          <div class="bot-config" id="botConfig" hidden>
+            <div class="bot-config-row">
+              <span class="bot-pill"><span class="mini-stone black" aria-hidden="true"></span> Bot Đen <b>Siêu khó</b></span>
+              <span class="bot-pill"><span class="mini-stone white" aria-hidden="true"></span> Bot Trắng <b>Siêu khó</b></span>
+            </div>
+            <p class="bot-time-note"><span aria-hidden="true">⏱</span> Tối đa <strong>30 giây</strong> cho mỗi nước</p>
+          </div>
+          <label class="field-label" id="firstLabel">Ai đi trước?</label>
+          <div class="segmented" id="firstGroup" role="group" aria-label="Người đi trước">
+            <button type="button" data-first="human" id="firstHumanBtn" class="active">Bạn (Đen)</button>
+            <button type="button" data-first="ai" id="firstAiBtn">Máy (Trắng)</button>
+          </div>
+          <p class="setting-note" id="settingsNote">Thay đổi thiết lập sẽ bắt đầu một ván mới.</p>
+        </section>
+
+        <section class="history-card glass">
+          <div class="card-heading">
+            <span>Diễn biến</span>
+            <span class="history-count" id="historyCount">0 nước</span>
+          </div>
+          <div class="history-list" id="historyList">
+            <p class="empty-note">Các nước đi sẽ xuất hiện ở đây.</p>
+          </div>
+        </section>
+
+        <section class="tip-card">
+          <span class="tip-icon" aria-hidden="true">◈</span>
+          <p><strong>Mẹo:</strong> lăn chuột để phóng to, kéo bàn cờ để di chuyển. Nối 5 quân liên tiếp theo hàng, cột hoặc đường chéo để thắng.</p>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="footer">
+      <span>Cờ Caro 50×50 · Người vs Máy · Máy vs Máy</span>
+      <span>Bot vs Bot: Siêu khó · tối đa 30 giây/nước.</span>
+    </footer>
+  </div>
+
+  <div class="modal" id="rulesModal" hidden role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <div class="modal-card">
+      <button class="modal-close" id="rulesCloseBtn" type="button" aria-label="Đóng">×</button>
+      <p class="modal-kicker">HƯỚNG DẪN</p>
+      <h2 id="rulesTitle">Luật chơi</h2>
+      <div class="rule-list">
+        <div class="rule-item">
+          <span class="rule-num">01</span>
+          <p><strong>Bàn cờ 50 × 50.</strong> Bạn cầm quân đen, máy cầm quân trắng. Mỗi bên lần lượt đặt một quân vào giao điểm còn trống.</p>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">02</span>
+          <p><strong>Nối 5 quân liên tiếp</strong> theo hàng ngang, hàng dọc hoặc đường chéo để giành chiến thắng. Chuỗi từ 5 quân trở lên đều thắng.</p>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">03</span>
+          <p><strong>Không có nước cấm.</strong> Luật chơi tự do, không chặn hai đầu, không giới hạn số quân trên một hàng.</p>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">04</span>
+          <p><strong>Điều khiển:</strong> chạm hoặc bấm để đánh; lăn chuột để phóng to; kéo bàn cờ để di chuyển khi đã phóng to. Trên điện thoại, chụm hai ngón để thu phóng.</p>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">05</span>
+          <p><strong>Trợ giúp:</strong> dùng <strong>Đi lại</strong> để lùi nước, <strong>Gợi ý</strong> để xem nước đi mà máy cho là mạnh nhất cho bạn.</p>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">06</span>
+          <p><strong>Máy vs Máy:</strong> hai bot đều ở mức <strong>Siêu khó</strong> và tự chơi với nhau; mỗi nước được suy nghĩ tối đa <strong>30 giây</strong>. Bạn có thể tạm dừng hoặc tiếp tục theo dõi.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="primary" id="rulesPlayBtn" type="button">Đã hiểu</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script id="aiWorkerSource" type="text/js-worker">
+<!--INLINE_WORKER-->
+  </script>
+
+  <script>
+<!--INLINE_APP-->
+  </script>
+</body>
+</html>

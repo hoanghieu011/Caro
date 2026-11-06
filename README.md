@@ -1,6 +1,6 @@
 # Cờ Caro 50 × 50 — Thách Đấu
 
-Game cờ caro 50 × 50 — chơi với máy hoặc xem **2 bot Siêu khó** tự đấu, giao diện tối kiểu bàn cờ gỗ, chạy hoàn toàn trong trình duyệt.
+Game cờ caro 50 × 50 — chơi với máy giao diện tối kiểu bàn cờ gỗ, chạy hoàn toàn trong trình duyệt.
 
 ## Mở game
 
